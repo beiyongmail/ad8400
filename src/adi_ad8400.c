@@ -1,12 +1,8 @@
 #include <rtthread.h>
-
+#include <rtdevice.h>
 
 #ifdef PKG_USING_AD8400
 
-
-#define AD8400_CS_PIN 				GET_PIN(G, 7)
-#define AD8400_SCK_PIN				GET_PIN(G, 6)
-#define AD8400_SI_PIN				GET_PIN(G, 5)
 
 #ifdef BSP_AD8400_CS_PIN
 #define AD8400_CS_PIN 				BSP_AD8400_CS_PIN
@@ -35,7 +31,7 @@
 #define MCP_SI_SET()				rt_pin_write(AD8400_SI_PIN, PIN_HIGH)
 #define MCP_SI_CLC()				rt_pin_write(AD8400_SI_PIN, PIN_LOW)
 
-#define GET_BIT(DATA, N)        ((DATA>>N) & 0x0001)
+#define GET_BIT(DATA, N)        (((DATA)>>(N)) & 0x0001)
 
 void ad8400_write(uint8_t addr, uint8_t value)
 {
@@ -56,17 +52,23 @@ void ad8400_write(uint8_t addr, uint8_t value)
 
 static void ad8400_set_value(int argc, char**argv)
 {
-	if (argc < 2) {
+	if (argc < 3) {
 		rt_kprintf("Please input parm!\n");
 		return;
 	}
-	int value = atoi(argv[1]);
+	uint32_t addr = atoi(argv[1]);
+	if (addr > 3) {
+		rt_kprintf("Please input value range : 0~ 3!\n");
+		return;
+	}
+
+	uint32_t value = atoi(argv[2]);
 	if (value > 255) {
 		rt_kprintf("Please input value range : 0~ 255!\n");
 		return;
 	}
 
-	ad8400_write(value);
+	ad8400_write(addr, value);
 }
 /* 导出到 msh 命令列表中 */
 MSH_CMD_EXPORT(ad8400_set_value, ad8400 set value);
